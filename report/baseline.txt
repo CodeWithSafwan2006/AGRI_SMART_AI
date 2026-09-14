@@ -1,0 +1,3 @@
+Majority class index: 0 (Apple___Apple_scab)
+macro-F1: 0.0058
+accuracy: 0.0556

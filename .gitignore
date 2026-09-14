@@ -1,0 +1,15 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+temp.jpg
+data/
+external/PlantVillage-Dataset/
+*.pt
+*.pth
+.DS_Store
+.idea/
+.vscode/
+report/assets/*.png
+!report/assets/.gitkeep
