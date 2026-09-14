@@ -608,13 +608,6 @@ function handleAdvisorLangChange() {
   }
 }
 
-function setChatPrompt(promptText) {
-  const input = document.getElementById('chatInput');
-  if (input) {
-    input.value = promptText;
-    sendChatQuestion();
-  }
-}
 
 async function sendChatQuestion() {
   const input = document.getElementById('chatInput');

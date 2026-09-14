@@ -241,10 +241,6 @@ with tab_crop:
                 <ul style="padding-left: 1.15rem; margin: 0;">
                   {wx_html}
                 </ul>
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 1.25rem 0 0.85rem 0;" />
-                <p style="font-size: 0.78rem; color: #8bb38f; margin: 0;">
-                  Synced via Open-Meteo & MobileNetV3 Checkpoint
-                </p>
               </div>
             </div>
             """,
