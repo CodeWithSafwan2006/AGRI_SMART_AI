@@ -1,0 +1,40 @@
+{
+  "name": "AgriSmart AI — Field Intelligence",
+  "short_name": "AgriSmart",
+  "description": "AI-powered crop disease detection and field intelligence platform for Indian farmers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a2e1a",
+  "theme_color": "#2d5016",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["agriculture", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/static/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Scan Leaf",
+      "short_name": "Scan",
+      "description": "Upload a leaf photo for disease detection",
+      "url": "/#scan",
+      "icons": [{"src": "/static/logo.svg", "sizes": "any"}]
+    },
+    {
+      "name": "Weather Intelligence",
+      "short_name": "Weather",
+      "description": "View live field weather and advisory",
+      "url": "/#weather",
+      "icons": [{"src": "/static/logo.svg", "sizes": "any"}]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
