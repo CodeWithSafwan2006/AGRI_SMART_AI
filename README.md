@@ -1,139 +1,152 @@
-# AgriSmart AI
+# AgriSmart AI — Field Pathology & Microclimate Intelligence
 
-Crop disease detection for farmers: upload a leaf photo, get a disease label with confidence, precautionary guidance, weather-based tips, and a grounded chatbot explanation.
+AgriSmart AI is a grounded crop pathology diagnostic, atmospheric microclimate intelligence, and grower advisory platform. It enables farmers to upload leaf photography to detect plant pathogens with confidence scores, receive actionable agronomic precautionary advice, monitor microclimate metrics, and consult an AI Agronomy Advisor.
 
-## Modules built
+---
 
-| Module | Status |
-|--------|--------|
-| **Core** — disease detection + precautions + web UI | Yes |
-| **Bonus C** — weather intelligence ([Open-Meteo](https://open-meteo.com/)) | Yes |
-| **Bonus E** — farmer chatbot (template + optional OpenAI paraphrase) | Yes |
-| Bonus A, B, D, F, G | **Not built** (24h scope) |
+## 7.1 Required Repository Structure
 
-## Step-by-step execution (24h roadmap)
-
-Run from `D:\SIH2` in PowerShell.
-
-**Step 0 — Environment**
-
-```powershell
-py -3 -m venv .venv
-.\.venv\Scripts\pip install -r requirements.txt
-git init
+```
+├── README.md                 # Entry point documentation & system overview
+├── app/                      # Source code (web application backend, auth, chatbot, weather intelligence)
+│   ├── app.py                # Streamlit application entry point
+│   ├── auth.py               # SQLite user authentication & profile management
+│   ├── chatbot.py            # AI Agronomy Advisor & multi-lingual query handling
+│   ├── weather.py            # Geocoding & microclimate weather intelligence
+│   ├── precautions.py        # Agronomic protocols & disease treatment database
+│   ├── crop_calendar.py     # Seasonal crop calendar & advisory rules
+│   ├── pest_knowledge.py     # Pest identification & remedies database
+│   └── validators.py         # Request validation & input sanitization
+├── model/                    # ML training/inference code & Section 4.1 predict interface
+│   ├── predict.py            # Standard predict interface & CLI evaluation
+│   ├── train.py              # Model training pipeline & checkpointing
+│   ├── model_def.py          # PyTorch model definitions & backbones (MobileNetV3 / EfficientNet)
+│   ├── augmentation.py       # Computer vision augmentation pipelines
+│   ├── export.py             # TorchScript / ONNX export utilities
+│   ├── labels.py             # Class mappings (18 curated crop disease classes)
+│   ├── config.py             # Model hyperparameter & metadata configuration
+│   └── weights/              # Trained model checkpoints (best.pt)
+├── report/                   # One-page model report & evaluation artifacts
+│   ├── model_report.md       # Comprehensive 1-page model report
+│   ├── baseline.txt          # Baseline evaluation benchmark metrics
+│   ├── training_log.csv      # Per-epoch training & validation logs
+│   └── val_classification_report.txt # Detailed holdout classification metrics
+├── frontend/                 # Static web client (HTML5/CSS3/JavaScript)
+│   ├── index.html            # Main Web UI dashboard
+│   ├── style.css             # Vanilla CSS styling & design system
+│   └── app.js                # Frontend state management & API integration
+├── scripts/                  # Dataset curation, evaluation, & pipeline automation scripts
+│   ├── test_model_inference.py # Unit tests for model inference
+│   ├── curate_and_split.py   # Dataset partitioning & curation utility
+│   ├── evaluate_holdout.py   # Model holdout validation script
+│   └── run_pipeline.ps1      # Automated build & evaluation pipeline
+├── server.py                 # FastAPI application server launcher
+└── requirements.txt          # Environment dependencies specification
 ```
 
-**Step 1 — PlantVillage dataset**
+---
 
-```powershell
-git clone --depth 1 https://github.com/spMohanty/PlantVillage-Dataset.git external/PlantVillage-Dataset
+## 4.1 Model Predict Interface
+
+The `/model` directory contains the required prediction module (`model/predict.py`) which exposes both a programmatic Python interface and a command-line interface.
+
+### Python API Usage
+```python
+from model.predict import load_model, predict
+
+# Load model weights (defaults to model/weights/best.pt)
+model = load_model()
+
+# Run inference on a target leaf specimen image
+label, confidence = predict("path/to/leaf_specimen.jpg", model=model)
+
+print(f"Diagnosed Pathology: {label}")
+print(f"Confidence Score: {confidence:.2%}")
 ```
 
-Or run the full automated chain:
-
+### CLI Inference Command
 ```powershell
-.\scripts\run_pipeline.ps1
+python model/predict.py --image path/to/leaf_specimen.jpg --weights model/weights/best.pt
 ```
 
-**Step 2 — Curate 18 classes + 80/10/10 split**
+---
+
+## 7.3 Model Report Summary
+
+A complete one-page model report is located at [`report/model_report.md`](file:///d:/SIH2/report/model_report.md).
+
+- **Task**: Multi-class crop leaf pathology identification from single RGB imagery across 18 curated plant disease & healthy baseline classes.
+- **Architecture**: Lightweight MobileNetV3-Small / EfficientNet-B0 backbone fine-tuned with weighted cross-entropy sampling for class imbalance.
+- **Performance**:
+  - **Validation Macro-F1**: `0.8480`
+  - **Validation Accuracy**: `84.72%`
+  - **Baseline Comparison**: Outperforms majority-class baseline (Macro-F1 `0.0058`).
+- **Known Limitations**: Model trained primarily on PlantVillage lab conditions; lighting and background variations in natural field captures may produce a generalization gap.
+
+---
+
+## Environment Setup & Clear Run Instructions
+
+### 1. Prerequisites & Virtual Environment
+
+Ensure Python 3.9+ is installed. Clone the repository and initialize a virtual environment:
 
 ```powershell
-# Full dataset (submission):
-.\.venv\Scripts\python scripts/curate_and_split.py --source external/PlantVillage-Dataset/raw/color
-# Fast local dev (120 images/class — already used if you followed agent setup):
-.\.venv\Scripts\python scripts/curate_and_split.py --source external/PlantVillage-Dataset/raw/color --max-per-class 120
-```
-
-**Step 3 — Baseline (for report)**
-
-```powershell
-.\.venv\Scripts\python scripts/baseline.py
-```
-
-**Step 4 — Train** (GPU recommended; Colab T4 ~1–2 h)
-
-```powershell
-.\scripts\train_local.ps1
-# Or full EfficientNet on GPU:
-.\.venv\Scripts\python model/train.py
-```
-
-**Step 5 — Evaluate + sync report**
-
-```powershell
-.\.venv\Scripts\python scripts/evaluate_holdout.py --split val
-.\.venv\Scripts\python scripts/evaluate_holdout.py --split holdout_lab_sample
-.\.venv\Scripts\python scripts/sync_report_metrics.py
-```
-
-**Step 6 — CLI smoke test (judging interface)**
-
-```powershell
-.\.venv\Scripts\python model/predict.py --image path\to\leaf.jpg
-```
-
-**Step 7 — Web UI** (custom field-diary layout per product design)
-
-```powershell
-.\.venv\Scripts\streamlit run app/app.py
-```
-
-**Step 8 — Demo video + optional Streamlit Cloud deploy**
-
-**Step 9 — Repro check:** fresh venv, `pip install`, `predict.py` + Streamlit in under ~10 minutes (weights present).
-
-## Setup (short)
-
-```powershell
-cd D:\SIH2
-py -3 -m venv .venv
+# Windows PowerShell
+python -m venv .venv
 .\.venv\Scripts\activate
+
+# Linux / macOS
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 2. Install Dependencies
+
+Install all required Python packages from `requirements.txt`:
+
+```powershell
 pip install -r requirements.txt
-copy .env.example .env   # optional OPENAI_API_KEY for chatbot paraphrase
 ```
 
-## Dataset
+### 3. Environment Configuration (Optional)
 
-- [spMohanty/PlantVillage-Dataset](https://github.com/spMohanty/PlantVillage-Dataset) — `raw/color` only, 18 curated classes in `model/labels.py`.
-- Train on lab images; organizer field set is separate — document the lab→field gap in `report/model_report.md`.
+Copy `.env.example` to `.env` to configure optional parameters (such as an OpenAI API key for advanced LLM agronomy rephrasing):
 
-## Metrics
-
-| Metric | Value |
-|--------|-------|
-| Val macro-F1 | see `report/training_log.csv` / `report/model_report.md` |
-| Val accuracy | same |
-| Baseline macro-F1 | `report/baseline.txt` |
-
-Confusion matrix: [report/assets/confusion_matrix_val.png](report/assets/confusion_matrix_val.png) (after training)
-
-## Architecture
-
-- **Vision:** EfficientNet-B0 (`timm`), weighted sampling, val macro-F1 checkpoint.
-- **Weather:** Open-Meteo geocoding + hourly forecast heuristics.
-- **UI:** Streamlit + `app/theme.py` — Lora + IBM Plex Sans, monsoon field palette (not generic SaaS cards).
-- **Chatbot:** Grounded templates (EN/HI/GU); optional LLM rephrases only provided facts.
-
-## Demo & deployment
-
-- Demo video: _YouTube unlisted link_
-- Live app: _Streamlit Community Cloud / Hugging Face Spaces_
-
-## Originality
-
-- Internal 24h execution roadmap; PlantVillage citation above.
-- _List tutorials/notebooks referenced during training._
-
-## Layout
-
+```powershell
+copy .env.example .env
 ```
-README.md
-requirements.txt
-app/app.py
-app/theme.py
-model/predict.py
-model/train.py
-model/weights/best.pt
-report/model_report.md
-scripts/
+
+### 4. Running the Application Server & Web UI
+
+Launch the FastAPI application server (serves REST endpoints and static Web UI):
+
+```powershell
+python server.py
+```
+
+Open your browser and navigate to:
+👉 **`http://127.0.0.1:8000`**
+
+### 5. Running the Alternative Streamlit App
+
+You can also run the Streamlit dashboard interface:
+
+```powershell
+streamlit run app/app.py
+```
+
+### 6. Model Training & Evaluation (Optional)
+
+To curate datasets, train models, or execute evaluation suites:
+
+```powershell
+# Curate PlantVillage dataset (18 classes)
+python scripts/curate_and_split.py --source external/PlantVillage-Dataset/raw/color
+
+# Train vision model
+python model/train.py
+
+# Evaluate model performance on validation holdout
+python scripts/evaluate_holdout.py --split holdout_lab_sample
 ```
