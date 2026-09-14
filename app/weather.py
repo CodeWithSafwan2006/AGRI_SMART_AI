@@ -73,14 +73,91 @@ def fetch_forecast(lat: float, lon: float) -> dict[str, Any]:
         "latitude": lat,
         "longitude": lon,
         "current": "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m",
-        "hourly": "temperature_2m,precipitation_probability,relative_humidity_2m,wind_speed_10m",
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum",
+        "hourly": "temperature_2m,precipitation_probability,relative_humidity_2m,wind_speed_10m,uv_index,direct_radiation",
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max,et0_fao_evapotranspiration",
         "forecast_days": 3,
         "timezone": "auto",
     }
     r = requests.get(FORECAST_URL, params=params, timeout=15)
     r.raise_for_status()
     return r.json()
+
+
+def get_uv_summary(forecast: dict[str, Any]) -> dict[str, Any]:
+    """Extract UV index and solar radiation metrics from forecast data.
+
+    Returns:
+        Dict with current_uv, max_uv_today, uv_risk_level, peak_solar_radiation,
+        and recommended_exposure_minutes.
+    """
+    hourly = forecast.get("hourly") or {}
+    daily = forecast.get("daily") or {}
+
+    uv_values = (hourly.get("uv_index") or [])[:24]
+    radiation_values = (hourly.get("direct_radiation") or [])[:24]
+    daily_uv_max = (daily.get("uv_index_max") or [0])
+
+    current_uv = uv_values[0] if uv_values else 0
+    max_uv_today = max(uv_values) if uv_values else (daily_uv_max[0] if daily_uv_max else 0)
+    peak_radiation = max(radiation_values) if radiation_values else 0
+
+    # WHO UV risk classification
+    if max_uv_today < 3:
+        uv_risk = "Low"
+        exposure_min = 120
+    elif max_uv_today < 6:
+        uv_risk = "Moderate"
+        exposure_min = 60
+    elif max_uv_today < 8:
+        uv_risk = "High"
+        exposure_min = 30
+    elif max_uv_today < 11:
+        uv_risk = "Very High"
+        exposure_min = 15
+    else:
+        uv_risk = "Extreme"
+        exposure_min = 10
+
+    return {
+        "current_uv": current_uv,
+        "max_uv_today": float(max_uv_today),
+        "uv_risk_level": uv_risk,
+        "peak_solar_radiation_wm2": float(peak_radiation),
+        "recommended_exposure_minutes": exposure_min,
+    }
+
+
+def solar_advisory(uv_summary: dict[str, Any], crop: str = "Tomato") -> list[str]:
+    """Generate actionable solar/UV advisories for field workers and crops."""
+    tips: list[str] = []
+    uv_risk = uv_summary.get("uv_risk_level", "Low")
+    max_uv = uv_summary.get("max_uv_today", 0)
+    peak_rad = uv_summary.get("peak_solar_radiation_wm2", 0)
+
+    if uv_risk in ("Very High", "Extreme"):
+        tips.append(
+            f"⚠️ UV index peaks at {max_uv:.1f} ({uv_risk}). Schedule field work before 10 AM or after 4 PM to protect workers."
+        )
+    elif uv_risk == "High":
+        tips.append(
+            f"☀️ UV index reaches {max_uv:.1f} ({uv_risk}). Use protective headgear and limit continuous sun exposure to 30 min."
+        )
+    else:
+        tips.append(f"✅ UV exposure is {uv_risk.lower()} (index {max_uv:.1f}). Normal outdoor field operations are safe.")
+
+    if peak_rad > 800:
+        tips.append(
+            f"🌡️ Peak solar irradiance ({peak_rad:.0f} W/m²) is intense. Young transplants and seedlings may benefit from shade netting."
+        )
+
+    if max_uv > 6 and crop.lower() in ("tomato", "bell pepper", "pepper"):
+        tips.append(
+            "🍅 Solanaceous crops are susceptible to sunscald under extreme UV. Consider fruit-facing shade cloth for exposed clusters."
+        )
+
+    return tips
+
+
 
 
 def get_weather_summary(forecast: dict[str, Any]) -> dict[str, Any]:
