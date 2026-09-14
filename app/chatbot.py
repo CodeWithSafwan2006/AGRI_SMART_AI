@@ -180,23 +180,51 @@ def generate_agronomy_advice(
                 f"Location: {village} | Temp: {curr_temp}°C | Humidity: {curr_humidity}% | "
                 f"Rain Probability: {max_rain_prob}% | Wind Speed: {curr_wind} km/h"
             )
-            prompt = f"""You are an agricultural expert and plant pathologist at AgriSmart.
+            prompt = f"""You are an expert plant pathologist and field agronomist at AgriSmart AI advisory.
 Grower Location: {village}
 Active Crop: {crop}
 Leaf Pathology Diagnosis: {disease_display} (Confidence: {confidence:.0%})
 Recommended Protocol: {precautions}
 Live Microclimate Telemetry: {weather_ctx}
 Weather Guidance: {'; '.join(weather_tips) if weather_tips else 'Normal conditions'}
-Grower Question: {q_clean or 'Provide crop management and weather advisory.'}
+Grower Inquiry: {q_clean or 'Provide crop management and weather advisory.'}
 
-Instruction: Provide clear, concise, actionable advice for the grower in clean, natural {language}. Correlate the question with the live weather metrics and crop pathology. 2-3 precise sentences without boilerplate."""
+Instructions:
+- Provide an insightful, varied, natural, and directly actionable response in fluent {language}.
+- Correlate the grower's question with the live weather conditions ({weather_ctx}) and diagnosed leaf pathology.
+- Offer specific practical tips (e.g. spray timing, canopy aeration, dosage caution, soil nutrition, or organic remedies).
+- Keep the response to 2-4 concise, impactful sentences without repetitive introductory fluff or boilerplate. Make each response dynamic and distinct."""
 
-            preferred_model = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-            model_candidates = [preferred_model, "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-latest", "gemini-pro-latest"]
-            for model_name in model_candidates:
+            preferred_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+            model_candidates = [
+                preferred_model,
+                "gemini-3.6-flash",
+                "gemini-3.5-flash",
+                "gemini-3.1-flash-lite",
+                "gemini-flash-latest",
+                "gemini-3.7-flash",
+            ]
+            # Deduplicate while preserving order
+            seen_models = set()
+            uniq_models = []
+            for m in model_candidates:
+                if m not in seen_models:
+                    seen_models.add(m)
+                    uniq_models.append(m)
+
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.85,
+                    "topP": 0.95,
+                    "maxOutputTokens": 350,
+                },
+            }
+
+            for model_name in uniq_models:
                 try:
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
-                    resp = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=10)
+                    resp = requests.post(url, json=payload, timeout=12)
                     if resp.status_code == 200:
                         data = resp.json()
                         candidates = data.get("candidates") or []
@@ -230,7 +258,7 @@ Grower Question: {q_clean or 'General agronomy advisory'}
 """
             system_prompt = (
                 f"You are an expert agronomist and plant pathologist advisor at AgriSmart. "
-                f"Provide actionable, grounded advice to the grower in fluent, natural {language}. "
+                f"Provide actionable, dynamic, and grounded advice to the grower in fluent, natural {language}. "
                 f"Address their question directly, correlate with live weather parameters and diagnosed pathology, "
                 f"and give 2-4 clear, professional sentences without fluff."
             )
@@ -240,6 +268,7 @@ Grower Question: {q_clean or 'General agronomy advisory'}
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": context},
                 ],
+                temperature=0.85,
                 max_tokens=250,
                 timeout=20,
             )
@@ -249,7 +278,8 @@ Grower Question: {q_clean or 'General agronomy advisory'}
         except Exception:
             pass
 
-    # Intelligent offline agronomist engine
+    # 3. Dynamic multi-factor offline agronomist engine with varied response variations
+    import random
     is_healthy = "healthy" in disease_display.lower()
     rain_risk = max_rain_prob >= 50
     wind_risk = curr_wind >= 20
@@ -266,19 +296,31 @@ Grower Question: {q_clean or 'General agronomy advisory'}
         parts = []
         if is_spray_q or rain_risk or wind_risk:
             if rain_risk:
-                parts.append(f"🌧️ {village} में 24 घंटों में बारिश की संभावना ({max_rain_prob:.0f}%) अधिक है। पत्तियों से दवा धुलने से बचाने के लिए किसी भी छिड़काव को स्थगित करें।")
+                rain_opts = [
+                    f"🌧️ {village} में अगले 24 घंटों में वर्षा की संभावना ({max_rain_prob:.0f}%) अधिक है। रसायन धुलने से बचाने के लिए किसी भी स्प्रे को टालें।",
+                    f"🌧️ भारी वर्षा ({max_rain_prob:.0f}%) के अनुमान के कारण वर्तमान में कीटनाशक या कवकनाशी का छिड़काव न करें। मौसम साफ होने की प्रतीक्षा करें।",
+                ]
+                parts.append(random.choice(rain_opts))
             elif wind_risk:
-                parts.append(f"💨 हवा की गति ({curr_wind:.1f} किमी/घंटा) अधिक है। हवा के बहाव (स्प्रे ड्रिफ्ट) से बचने के लिए हवा शांत होने तक रुकें।")
+                parts.append(f"💨 तेज हवा ({curr_wind:.1f} किमी/घंटा) चल रही है। स्प्रे ड्रिफ्ट और रसायनों की बर्बादी से बचने के लिए हवा धीमी होने पर ही काम करें।")
             else:
-                parts.append(f"✅ वर्तमान मौसम छिड़काव के लिए अनुकूल है। सुबह या शाम के शांत समय में अनुशंसित मात्रा में छिड़काव करें।")
+                spray_ok = [
+                    f"✅ वर्तमान मौसम छिड़काव के लिए बहुत अनुकूल है। सुबह या शाम के समय अनुशंसित मात्रा में स्प्रे करें।",
+                    f"✅ अनुकूल मौसम खिड़की उपलब्ध है। शांत धूप या शाम में पत्तियों पर सुरक्षात्मक लेप लगाएं।",
+                ]
+                parts.append(random.choice(spray_ok))
         
         if is_disease_q or not is_healthy:
-            parts.append(f"🛡️ रोग नियंत्रण ({disease_display}): {precautions}")
+            parts.append(f"🛡️ {disease_display} के लिए नियंत्रण उपाय: {precautions}")
         else:
-            parts.append(f"🌿 आपकी {crop} फसल वर्तमान में स्वस्थ स्थिति में है। नियमित निगरानी रखें और संतुलित सिंचाई बनाए रखें।")
+            healthy_opts = [
+                f"🌿 आपकी {crop} फसल वर्तमान में स्वस्थ स्थिति में है। नियमित निगरानी रखें और संतुलित सिंचाई बनाए रखें।",
+                f"🌱 पौधों की कैनोपी उत्तम विकास दर्शा रही है। अतिरिक्त पोषण और नियमित फील्ड मॉनिटरिंग जारी रखें।",
+            ]
+            parts.append(random.choice(healthy_opts))
 
         if spore_risk and not is_healthy:
-            parts.append(f"⚠️ उच्च आर्द्रता ({curr_humidity}%) में फंगल संक्रमण का खतरा बढ़ जाता है। पौधों के बीच उचित वायु संचार बनाए रखें।")
+            parts.append(f"⚠️ वातावरण में नमी ({curr_humidity}%) अधिक होने से बीजाणु तेजी से फैल सकते हैं; पौधों के बीच अच्छा वायु संचार सुनिश्चित करें।")
 
         if q_clean and not parts:
             parts.append(f"सलाह: {precautions} {village} के मौसम के अनुसार सिंचाई और पोषण का प्रबंधन करें।")
@@ -289,14 +331,14 @@ Grower Question: {q_clean or 'General agronomy advisory'}
         parts = []
         if is_spray_q or rain_risk or wind_risk:
             if rain_risk:
-                parts.append(f"🌧️ {village} સ્ટેશન પર વરસાદની સંભાવના ({max_rain_prob:.0f}%) વધારે છે. દવાનો છંટકાવ મોકૂફ રાખો.")
+                parts.append(f"🌧️ {village} વિસ્તારમાં વરસાદની સંભાવના ({max_rain_prob:.0f}%) વધુ છે. દવાનો છંટકાવ મોકૂફ રાખવો હિતાવહ છે.")
             elif wind_risk:
-                parts.append(f"💨 પવનની ગતિ ({curr_wind:.1f} km/h) વધુ છે. સ્પ્રે ડ્રિફ્ટ ટાળવા માટે પવન ધીમો પડે ત્યાં સુધી રાહ જુઓ.")
+                parts.append(f"💨 પવનની ગતિ ({curr_wind:.1f} km/h) વધુ હોવાથી સ્પ્રે ડ્રિફ્ટ ટાળવા માટે પવન શાંત થાય ત્યાં સુધી રાહ જુઓ.")
             else:
                 parts.append(f"✅ છંટકાવ માટે હવામાન અનુકૂળ છે. સવારે અથવા સાંજે છંટકાવ કરવો હિતાવહ છે.")
         
         if is_disease_q or not is_healthy:
-            parts.append(f"🛡️ રોગ નિયંત્રણ ({disease_display}): {precautions}")
+            parts.append(f"🛡️ {disease_display} રોગ નિયંત્રણ: {precautions}")
         else:
             parts.append(f"🌿 આપનો {crop} પાક હાલમાં સ્વસ્થ છે. નિયમિત દેખરેખ ચાલુ રાખો.")
 
@@ -316,36 +358,61 @@ Grower Question: {q_clean or 'General agronomy advisory'}
                 parts.append(f"✅ सध्याचे हवामान फवारणीसाठी योग्य आहे. सकाळी किंवा संध्याकाळी फवारणी करा.")
         
         if is_disease_q or not is_healthy:
-            parts.append(f"🛡️ रोग नियंत्रण ({disease_display}): {precautions}")
+            parts.append(f"🛡️ {disease_display} नियंत्रण: {precautions}")
         else:
             parts.append(f"🌿 आपले {crop} पीक निरोगी आहे. योग्य पाणी आणि खत व्यवस्थापन सुरू ठेवा.")
 
         return " ".join(parts)
 
     else:
-        # Default English
+        # Default English with multi-variant dynamic phrasing
         parts = []
+        intro_phrases = [
+            f"Agronomic Telemetry Assessment for {crop} ({village} Station):",
+            f"Field Advisory Intelligence for {crop} at {village}:",
+            f"Crop Health & Microclimate Guidance ({village} Station):",
+        ]
         if q_clean:
-            parts.append(f"Agronomic Assessment for {crop} at {village} Station:")
+            parts.append(random.choice(intro_phrases))
         
         if is_spray_q or rain_risk or wind_risk:
             if rain_risk:
-                parts.append(f"Precipitation probability is elevated ({max_rain_prob:.0f}% in 24h). Postpone foliar spray applications to prevent product wash-off and chemical loss.")
+                rain_alerts = [
+                    f"Elevated rain probability ({max_rain_prob:.0f}% in 24h) increases runoff risk. Postpone foliar applications until foliage can dry completely.",
+                    f"Microclimate data forecasts potential precipitation ({max_rain_prob:.0f}%). Suspend pesticide or fungicide spray to avoid chemical wash-off.",
+                ]
+                parts.append(random.choice(rain_alerts))
             elif wind_risk:
-                parts.append(f"Wind velocity ({curr_wind:.1f} km/h) exceeds safe application thresholds. Delay mechanical spraying to avoid drift hazard.")
+                parts.append(f"Current wind velocity ({curr_wind:.1f} km/h) exceeds spray safety limits; delay mechanical spraying to avoid drift hazard.")
             else:
-                parts.append(f"Atmospheric conditions provide an optimal spraying window with low wash-off risk.")
+                spray_windows = [
+                    f"Atmospheric conditions currently provide an optimal spraying window with minimal wash-off risk.",
+                    f"Calm wind and favorable humidity provide safe operational conditions for foliar nutrient and protector applications.",
+                ]
+                parts.append(random.choice(spray_windows))
 
         if is_disease_q or not is_healthy:
-            parts.append(f"Pathology Protocol for {disease_display}: {precautions}")
+            parts.append(f"Targeted Protocol for {disease_display}: {precautions}")
         else:
-            parts.append(f"Canopy status indicates a healthy stand. Maintain scheduled scouting and baseline irrigation.")
+            healthy_notes = [
+                f"Canopy diagnostic indicates a robust, healthy stand. Maintain scheduled scouting and baseline irrigation.",
+                f"Foliar scan confirms vigorous plant tissue with no active sporulation. Continue balanced crop nutrition.",
+            ]
+            parts.append(random.choice(healthy_notes))
 
         if spore_risk and not is_healthy:
-            parts.append(f"Elevated relative humidity ({curr_humidity}%) combined with ambient temperature creates a high-risk microclimate for spore propagation; ensure adequate canopy aeration.")
+            humidity_notes = [
+                f"High canopy humidity ({curr_humidity}%) creates favorable conditions for fungal spore spread; ensure adequate row spacing and aeration.",
+                f"Atmospheric moisture ({curr_humidity}%) combined with ambient warmth accelerates pathogen incubation; monitor lower canopy closely.",
+            ]
+            parts.append(random.choice(humidity_notes))
 
         if is_fert_q:
-            parts.append("Maintain balanced nitrogen-phosphorus-potassium nutrition and avoid excess vegetative nitrogen during active infection periods.")
+            fert_notes = [
+                "Maintain balanced NPK fertilization and avoid excess free nitrogen which can soften leaf cuticles during pathogen pressure.",
+                "Ensure adequate potassium and micronutrient supplementation to strengthen cell wall resistance.",
+            ]
+            parts.append(random.choice(fert_notes))
 
         return " ".join(parts)
 
