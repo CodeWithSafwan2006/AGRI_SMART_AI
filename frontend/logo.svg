@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <style>
+      .c-dark { fill: #1f5b2e; }
+      .c-light { fill: #8ebc29; }
+      .s-dark { stroke: #1f5b2e; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <g id="agri-logo" transform="translate(0, 5)">
+    <!-- 1. OUTER SWIRL CIRCLE FRAME -->
+    <path class="s-dark" stroke-width="18" fill="none" d="
+      M 218 174
+      C 178 196 150 236 142 284
+      C 130 354 165 422 225 456
+      C 285 490 360 482 414 438
+      C 458 402 478 344 466 288
+      C 463 274 456 264 446 264
+      C 438 264 432 274 432 284
+      C 436 322 418 360 388 386
+    "/>
+
+    <!-- 2. LEFT LEAF -->
+    <path class="c-dark" d="
+      M 252 272
+      C 236 240 228 198 234 158
+      C 236 144 246 132 254 126
+      C 260 134 268 152 276 174
+      C 286 202 290 232 282 262
+      C 276 272 264 278 252 272
+      Z
+    "/>
+
+    <!-- 3. RIGHT LEAF -->
+    <!-- Large sweeping upper leaf -->
+    <path class="c-dark" d="
+      M 276 268
+      C 288 232 308 194 330 158
+      C 346 132 364 108 380 88
+      C 402 114 420 152 422 190
+      C 424 232 406 270 376 295
+      C 356 312 334 320 312 318
+      C 309 308 309 295 314 280
+      C 324 248 342 220 358 194
+      C 370 172 377 148 378 126
+      C 362 150 346 176 332 204
+      C 312 242 292 282 286 310
+      C 282 304 278 288 276 268
+      Z
+    "/>
+
+    <!-- Inner stem arc -->
+    <path class="c-dark" d="
+      M 286 310
+      C 292 282 312 242 332 204
+      C 346 176 362 150 378 126
+      C 377 148 370 172 358 194
+      C 342 220 324 248 314 280
+      C 309 295 309 308 312 318
+      C 298 318 289 315 286 310
+      Z
+    "/>
+
+    <!-- 4. TERRACED FIELD - BRIGHT GREEN STRIPES -->
+
+    <!-- Left Slope: Top Stripe -->
+    <path class="c-light" d="
+      M 160 286
+      C 182 286 216 298 252 324
+      C 240 335 220 333 198 325
+      C 180 317 166 304 156 294
+      Z
+    "/>
+
+    <!-- Left Slope: Middle Stripe -->
+    <path class="c-light" d="
+      M 152 326
+      C 174 336 204 348 234 366
+      C 220 377 200 374 178 362
+      C 160 350 148 338 146 330
+      Z
+    "/>
+
+    <!-- Left Slope: Bottom Stripe -->
+    <path class="c-light" d="
+      M 156 370
+      C 176 384 204 400 230 418
+      C 216 426 195 422 176 408
+      C 162 396 155 384 153 376
+      Z
+    "/>
+
+    <!-- Right Slope: Top Arc -->
+    <path class="c-light" d="
+      M 252 324
+      C 290 296 348 282 418 285
+      C 440 286 454 290 460 295
+      C 458 310 448 326 436 335
+      C 384 328 326 336 274 368
+      C 262 350 254 336 252 324
+      Z
+    "/>
+
+    <!-- Right Slope: Middle Arc -->
+    <path class="c-light" d="
+      M 274 368
+      C 326 336 384 328 436 335
+      C 424 362 398 386 368 402
+      C 328 386 290 382 258 406
+      C 260 392 266 379 274 368
+      Z
+    "/>
+
+    <!-- Right Slope: Bottom Arc -->
+    <path class="c-light" d="
+      M 258 406
+      C 290 382 328 386 368 402
+      C 344 422 312 436 278 438
+      C 264 430 254 418 250 408
+      C 252 407 255 406 258 406
+      Z
+    "/>
+
+    <!-- 5. DARK GREEN CONTOUR LINES / DIVIDERS -->
+    <!-- Central Ridge Divider -->
+    <path class="s-dark" stroke-width="8" fill="none" d="
+      M 252 272
+      C 250 308 254 348 260 436
+    "/>
+
+    <!-- Left Slope Contour Dividers -->
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 158 284
+      C 184 286 218 300 252 324
+    "/>
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 150 322
+      C 176 334 208 348 242 368
+    "/>
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 154 366
+      C 178 382 208 400 236 418
+    "/>
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 170 416
+      C 192 430 216 444 242 456
+    "/>
+
+    <!-- Right Slope Contour Dividers -->
+    <path class="s-dark" stroke-width="8" fill="none" d="
+      M 252 324
+      C 290 294 350 282 420 284
+      C 442 285 456 290 462 294
+    "/>
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 256 358
+      C 300 326 360 318 440 326
+    "/>
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 262 398
+      C 304 366 358 360 414 378
+    "/>
+    <path class="s-dark" stroke-width="7" fill="none" d="
+      M 272 436
+      C 308 410 350 408 386 422
+    "/>
+  </g>
+</svg>
