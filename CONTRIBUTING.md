@@ -39,23 +39,16 @@ copy .env.example .env
 # Opens at http://127.0.0.1:8000
 ```
 
-### Streamlit Interface (Alternative UI)
-```powershell
-.\.venv\Scripts\streamlit run app/app.py
-```
-
 ## Project Structure
 
 ```
 AgriSmart AI/
 ├── server.py           # FastAPI application server
 ├── app/
-│   ├── app.py          # Streamlit UI interface
 │   ├── auth.py         # SQLite authentication
 │   ├── chatbot.py      # Gemini AI advisor with guardrails
 │   ├── weather.py      # Open-Meteo weather intelligence
-│   ├── precautions.py  # Disease treatment guidance
-│   └── theme.py        # UI theme and styling
+│   └── precautions.py  # Disease treatment guidance
 ├── model/
 │   ├── train.py        # EfficientNet-B0 training pipeline
 │   ├── predict.py      # Inference engine

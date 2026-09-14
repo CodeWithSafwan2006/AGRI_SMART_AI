@@ -9,7 +9,6 @@ AgriSmart AI is a grounded crop pathology diagnostic, atmospheric microclimate i
 ```
 ├── README.md                 # Entry point documentation & system overview
 ├── app/                      # Source code (web application backend, auth, chatbot, weather intelligence)
-│   ├── app.py                # Streamlit application entry point
 │   ├── auth.py               # SQLite user authentication & profile management
 │   ├── chatbot.py            # AI Agronomy Advisor & multi-lingual query handling
 │   ├── weather.py            # Geocoding & microclimate weather intelligence
@@ -128,15 +127,7 @@ python server.py
 Open your browser and navigate to:
 👉 **`http://127.0.0.1:8000`**
 
-### 5. Running the Alternative Streamlit App
-
-You can also run the Streamlit dashboard interface:
-
-```powershell
-streamlit run app/app.py
-```
-
-### 6. Model Training & Evaluation (Optional)
+### 5. Model Training & Evaluation (Optional)
 
 To curate datasets, train models, or execute evaluation suites:
 

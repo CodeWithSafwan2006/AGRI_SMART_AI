@@ -31,4 +31,4 @@ Write-Host "Step 6: Smoke predict on one val image..."
 $sample = Get-ChildItem -Recurse .\data\val -Include *.jpg,*.JPG,*.jpeg | Select-Object -First 1
 if ($sample) { & $py model/predict.py --image $sample.FullName }
 
-Write-Host "Done. Launch UI: streamlit run app/app.py"
+Write-Host "Done. Launch UI: python server.py"
