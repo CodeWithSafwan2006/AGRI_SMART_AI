@@ -1,0 +1,86 @@
+====================================================================
+AGRISMART AI — PROBLEM STATEMENT, USE CASES & SYSTEM REPORT
+SIH 2026 (Internal Hackathon) — L. J. Institute of Engineering and Technology [C-433]
+====================================================================
+
+1. PROBLEM STATEMENT
+--------------------------------------------------------------------
+Domain           : AI / AgriTech / Sustainability
+Technology       : AI/ML, Computer Vision, GenAI, Microclimate Intelligence
+Target Users     : Farmers & Agricultural Stakeholders
+Challenge Level  : Advanced
+
+Background:
+Agriculture faces persistent challenges — water scarcity, unpredictable weather,
+soil degradation, crop diseases, inefficient irrigation timing, and excessive
+fertilizer/pesticide usage. Smallholder farmers often lack real-time expert
+agronomic advice, leading to delayed disease detection and crop loss.
+
+Core Task (Mandatory):
+Build an AI-powered crop-disease detection tool that:
+  - Accepts a leaf/crop image and classifies it into a disease class (or "healthy")
+    from a provided ~15-20 class label set.
+  - Implements a train-on-lab / test-in-field evaluation protocol:
+      * Train/Validation data -> PlantVillage (lab-condition images)
+      * Held-out test data    -> PlantDoc-style real-world field images
+  - Reports Macro-F1 (primary metric to address class imbalance), confusion matrix,
+    and per-class precision/recall on held-out data.
+  - Exposes a standard predict(image_path) function and CLI interface
+    (python model/predict.py --image <path>) with pretrained weights.
+  - Presents results simply with actionable precautionary guidance.
+
+Optional Bonus Modules Built:
+  - Bonus C: Weather-Based Intelligence (microclimate telemetry & spray window advisory)
+  - Bonus E: Farmer Assistant (GenAI multi-lingual agronomy chatbot)
+
+Submission & Reproducibility Requirements:
+  - Standard repository structure (/README.md, /app, /model, /report, requirements.txt).
+  - Reproducible prediction execution in under ~10 minutes.
+
+--------------------------------------------------------------------
+2. USE CASES & SOLVED WORKFLOWS
+--------------------------------------------------------------------
+A. Leaf Pathology Diagnostic
+   - Farmer takes a picture of a diseased leaf in the field.
+   - System evaluates the image using MobileNetV3-Small / EfficientNet-B0 vision model.
+   - Returns exact pathogen classification (e.g., Tomato — Early Blight) with confidence score.
+
+B. Precautionary Treatment & Agronomic Protocols
+   - Immediately provides recommended chemical treatment, organic remedies, and preventive measures.
+   - Constrains advisory to validated agricultural practices to prevent crop damage.
+
+C. Atmospheric & Microclimate Telemetry
+   - Automatically geocodes farmer's location (village/city or GPS coordinates).
+   - Fetches live weather telemetry (ambient temperature, precipitation probability, humidity, wind velocity).
+   - Evaluates operational safety windows (e.g., spray drift risk, fungal spore spread risk).
+
+D. Multilingual AI Agronomy Advisor
+   - Conversational assistance supporting English, Hindi (हिंदी), Gujarati (ગુજરાતી), and Marathi (मराठी).
+   - Answers queries regarding spray timing, fertilizer management, and organic remedies.
+
+E. Grower Profile & Station Calibration
+   - Secure SQLite authentication and profile configuration (crop selection, soil type, field acreage).
+   - Custom field calibration per plot.
+
+--------------------------------------------------------------------
+3. MODEL & TRAINING PIPELINE
+--------------------------------------------------------------------
+- Model Architecture : MobileNetV3-Small / EfficientNet-B0 (Pretrained transfer learning)
+- Loss Function      : Weighted Cross-Entropy (to handle class imbalance)
+- Curated Classes    : 18 distinct crop disease and healthy baseline classes
+- Dataset            : PlantVillage (~54,000 images, curated to 18 classes)
+- Performance        :
+  * Validation Macro-F1 : 0.8480
+  * Validation Accuracy : 84.72%
+  * Baseline Comparison : Outperforms majority-class baseline (Macro-F1 0.0058)
+- Predict Interface  : Programmatic API (load_model & predict) and CLI command line interface.
+
+--------------------------------------------------------------------
+4. SYSTEM & TECH STACK SUMMARY
+--------------------------------------------------------------------
+- Backend Server  : FastAPI (REST API endpoints for inference, auth, weather, & chat)
+- Frontend UI     : Vanilla HTML5, CSS3, JavaScript (Field Pathology Dashboard)
+- ML Framework    : PyTorch, torchvision, timm
+- Weather Engine  : Open-Meteo Geocoding & Hourly Forecast API
+- Database        : SQLite (Local authentication & profile store)
+- Language        : Python 3.9+
