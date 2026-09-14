@@ -63,6 +63,17 @@ init_auth_db()
 
 app = FastAPI(title="AgriSmart AI", description="Crop Health & Field Intelligence API")
 
+@app.on_event("startup")
+def startup_event():
+    global AI_MODEL, predict_fn
+    if AI_MODEL is None:
+        try:
+            from model.predict import load_model, predict as p_fn
+            predict_fn = p_fn
+            AI_MODEL = load_model()
+        except Exception:
+            pass
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -115,6 +126,14 @@ class ChatRequest(BaseModel):
 
 @app.get("/api/health")
 def health():
+    global AI_MODEL, predict_fn
+    if AI_MODEL is None:
+        try:
+            from model.predict import load_model, predict as p_fn
+            predict_fn = p_fn
+            AI_MODEL = load_model()
+        except Exception:
+            pass
     return {"status": "online", "model_loaded": AI_MODEL is not None}
 
 

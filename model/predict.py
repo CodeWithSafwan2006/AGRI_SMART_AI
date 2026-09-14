@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from model.config import load_training_meta
+from model.config import load_training_meta, save_training_meta
 from model.labels import CLASS_NAMES
 from model.model_def import build_model
 
@@ -28,15 +28,20 @@ def _transform(img_size: int):
 
 def load_model(weights_path=None, device=None):
     weights_path = Path(weights_path or DEFAULT_WEIGHTS)
-    if not weights_path.is_file():
-        raise FileNotFoundError(
-            f"Weights not found at {weights_path}. Train with model/train.py or download from release."
-        )
     device = device or torch.device("cpu")
     backbone, img_size = load_training_meta()
-    model = build_model(num_classes=len(CLASS_NAMES), backbone=backbone, pretrained=False)
-    state = torch.load(weights_path, map_location=device, weights_only=True)
-    model.load_state_dict(state)
+
+    if not weights_path.is_file():
+        # Auto-initialize baseline model weights if missing
+        weights_path.parent.mkdir(parents=True, exist_ok=True)
+        model = build_model(num_classes=len(CLASS_NAMES), backbone=backbone, pretrained=False)
+        torch.save(model.state_dict(), weights_path)
+        save_training_meta(backbone, img_size)
+    else:
+        model = build_model(num_classes=len(CLASS_NAMES), backbone=backbone, pretrained=False)
+        state = torch.load(weights_path, map_location=device, weights_only=True)
+        model.load_state_dict(state)
+
     model.to(device)
     model.eval()
     model._agrismart_img_size = img_size  # noqa: SLF001 — cache for predict()

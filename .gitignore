@@ -7,8 +7,10 @@ temp.jpg
 data/
 external/PlantVillage-Dataset/
 *.pt
+!model/weights/best.pt
 *.pth
 .DS_Store
+server_log.txt
 .idea/
 .vscode/
 report/assets/*.png
